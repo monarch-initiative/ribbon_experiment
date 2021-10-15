@@ -26,4 +26,4 @@ else:
     response = eval(connection.read())
 
 print("Number of hits: " + str(response['response']['numFound']))
-pprint.pprint(response['response']['docs'])
+pprint.pprint(response['facets']['genes']['buckets'])
