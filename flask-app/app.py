@@ -1,27 +1,29 @@
-from flask import Flask, render_template, request
 from urllib.request import urlopen
 import simplejson
+import pprint
 
-BASE_PATH = 'http://localhost:8983/solr/phenotype_annotations/select'
-app = Flask(__name__)
+host = "localhost"
+port = "8983"
+collection = "phenotype_annotations"
+qt = "query"
+url = 'http://' +host + ':' + port + '/solr/' + collection + '/' + qt + '?'
+print(url)
+q = "q=*:*"
+fq = "fq=phenotypic_feature:ZP\:0002588"
+rows = "rows=0"
+wt = "wt=json"
+jsonfacet = 'json.facet={genes:{type:terms,field:gene,facet:{publication_count:"unique(publications)"}}}'
+# wt        = "wt=python"
+params = [q, fq, wt, rows, jsonfacet]
+p = "&".join(params)
 
+print(url + p)
+connection = urlopen(url + p)
 
-@app.route('/', methods=["GET", "POST"])
-def index():
-    results = None
+if wt == "wt=json":
+    response = simplejson.load(connection)
+else:
+    response = eval(connection.read())
 
-    if request.method == "POST":
-        query = 'q=*:*&fq=phenotypic_feature:ZP\:0002588&rows=0&json.facet={genes:{type:terms,field:gene,facet:{publication_count:"unique(publications)"}}}'
-
-        # query for information and return results
-        connection = urlopen("{}{}".format(BASE_PATH, query))
-        response = simplejson.load(connection)
-        print(response)
-        numresults = response['response']['numFound']
-        results = response['response']['docs']
-
-    return results
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+print("Number of hits: " + str(response['response']['numFound']))
+pprint.pprint(response['response']['docs'])
