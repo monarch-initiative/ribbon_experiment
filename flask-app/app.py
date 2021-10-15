@@ -1,29 +1,55 @@
-from urllib.request import urlopen
-import simplejson
+import requests
+import simplejson as json
 import pprint
 
+ribbon_terms = ["ZP:0000043",
+                "ZP:0018576",
+                "ZP:0018546",
+                "ZP:0000038",
+                "ZP:0000054",
+                "ZP:0000473",
+                "ZP:0000212",
+                "ZP:0000095",
+                "ZP:0000115"]
+
+# add escaping
+escaped_ribbon_terms = [term.replace(":", "\\:") for term in ribbon_terms]
+ribbon_term_facet_queries = {
+        term: {
+            "type": "query",
+            "q": f"phenotypic_feature:{term}",
+            "facet": {
+                "annotations": "unique(id)",
+                "classes": "unique(phenotypic_feature)"
+            }
+        } for term in escaped_ribbon_terms}
 host = "localhost"
 port = "8983"
 collection = "phenotype_annotations"
 qt = "query"
-url = 'http://' +host + ':' + port + '/solr/' + collection + '/' + qt + '?'
+url = 'http://' + host + ':' + port + '/solr/' + collection + '/' + qt + '?'
 print(url)
-q = "q=*:*"
-fq = "fq=phenotypic_feature:ZP\:0002588"
-rows = "rows=0"
-wt = "wt=json"
-jsonfacet = 'json.facet={genes:{type:terms,field:gene,facet:{publication_count:"unique(publications)"}}}'
-# wt        = "wt=python"
-params = [q, fq, wt, rows, jsonfacet]
-p = "&".join(params)
 
-print(url + p)
-connection = urlopen(url + p)
+query = {
+    "params": {
+        "q": "*:*",
+        "rows": "0",
+        "wt": "json",
+    },
+    "facet": ribbon_term_facet_queries
+}
 
-if wt == "wt=json":
-    response = simplejson.load(connection)
-else:
-    response = eval(connection.read())
+print(url)
+response = requests.post(url,
+                         headers={"Content-Type": "application/json"},
+                         json=query)
 
-print("Number of hits: " + str(response['response']['numFound']))
-pprint.pprint(response['facets']['genes']['buckets'])
+result = {}
+for key, value in response.json()["facets"].items():
+    if key != 'count':
+        result[key] = {
+            "annotations": value["annotations"],
+            "classes": value["classes"]
+        }
+
+pprint.pprint(result)
