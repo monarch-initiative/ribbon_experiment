@@ -5,6 +5,7 @@ from collections import defaultdict
 zfin = pd.read_csv('zfin_gene_to_phenotype_edges.tsv', sep='\t')
 alliance = pd.read_csv('alliance_gene_to_phenotype_edges.tsv', sep='\t')
 xenbase = pd.read_csv('xenbase_gene_to_phenotype_edges.tsv', sep='\t')
+rt = pd.read_csv('ribbon.csv')
 
 df = pd.concat([alliance,xenbase,zfin], ignore_index=True, sort=False)
 
@@ -13,7 +14,6 @@ df = df.drop(['predicate', 'category','relation', 'provided_by'], axis=1)
 df.to_json('out.json', orient='records', lines=True)
 
 # get the ribbon terms
-rt = pd.read_csv("https://docs.google.com/spreadsheets/d/12LhMC-814rtaEWYrt96KgFXpS9yrdRzj4H3wrMMyboc/export?format=csv&gid=0")
 ribbon_terms = pd.unique(rt[["Top level","Sub level"]].values.ravel()).tolist()
 
 
