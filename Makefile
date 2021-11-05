@@ -21,6 +21,7 @@ download:
 	curl -OJ "https://storage.googleapis.com/monarch-ingest/output/alliance_gene_to_phenotype_edges.tsv"
 	curl -OJ "https://storage.googleapis.com/monarch-ingest/output/xenbase_gene_to_phenotype_edges.tsv"
 	curl -OJ "https://bbop-ontologies.s3.amazonaws.com/upheno/current/upheno-release/all/upheno_all_with_relations.owl"
+	wget "https://docs.google.com/spreadsheets/d/12LhMC-814rtaEWYrt96KgFXpS9yrdRzj4H3wrMMyboc/export?format=csv&gid=0" -O ribbon.csv
 
 .PHONY: create-solr-docker
 create-solr-docker:
