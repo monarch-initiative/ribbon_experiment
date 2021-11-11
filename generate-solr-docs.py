@@ -7,14 +7,14 @@ alliance = pd.read_csv('alliance_gene_to_phenotype_edges.tsv', sep='\t')
 xenbase = pd.read_csv('xenbase_gene_to_phenotype_edges.tsv', sep='\t')
 rt = pd.read_csv('ribbon.csv')
 
-df = pd.concat([alliance,xenbase,zfin], ignore_index=True, sort=False)
+df = pd.concat([alliance, xenbase, zfin], ignore_index=True, sort=False)
 
-df = df.rename(columns={"subject": "gene", "object":"phenotypic_feature"})
-df = df.drop(['predicate', 'category','relation', 'provided_by'], axis=1)
+df = df.rename(columns={"subject": "gene", "object": "phenotypic_feature"})
+df = df.drop(['predicate', 'category', 'relation', 'provided_by'], axis=1)
 df.to_json('out.json', orient='records', lines=True)
 
 # get the ribbon terms
-ribbon_terms = pd.unique(rt[["Top level","Sub level"]].values.ravel()).tolist()
+ribbon_terms = pd.unique(rt[["Top level", "Sub level"]].values.ravel()).tolist()
 
 
 # map all upheno terms to ribbon terms
