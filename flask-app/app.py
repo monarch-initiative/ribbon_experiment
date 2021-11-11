@@ -1,21 +1,11 @@
 import requests
-import simplejson as json
+import pandas as pd
 import pprint
+from collections import defaultdict
 
-import csv
-
-ribbon_terms = []
-with open('../ribbon.csv', mode='r') as infile:
-    reader = csv.reader(infile)
-    for row in reader:
-        if row[2] == 'Sub level':
-            continue
-        else:
-            ribbon_terms.append(row[2])
-    ribbon_terms_imported = dict((rows[0], rows[1]) for rows in reader)
-
-ribbon_categories = list(ribbon_terms_imported)
-print(ribbon_terms)
+rt = pd.read_csv('../ribbon.csv')
+# get the ribbon terms
+ribbon_terms = pd.unique(rt[["Top level", "Sub level"]].values.ravel()).tolist()
 
 # add escaping
 
@@ -56,12 +46,15 @@ result = {}
 # http://geneontology.org/docs/ribbon.html
 # https://www.alliancegenome.org/api/gene/*/disease-ribbon-summary?geneID=HGNC:11998
 
+print(response.json()["facets"].items())
+
 for key, value in response.json()["facets"].items():
     if key != 'count':
-        result[key] = {
-            "annotations": value["annotations"],
-            "classes": value["classes"]
-        }
+        print(key, value)
+        # result[key] = {
+        #     "annotations": value["annotations"],
+        #     "classes": value["classes"]
+        # }
 
 
 
