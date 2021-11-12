@@ -16,7 +16,7 @@ escaped_ribbon_terms = [term.replace(":", "\\:") for term in ribbon_terms]
 ribbon_term_facet_queries = {
         term: {
             "type": "query",
-            "q": f"phenotypic_feature:{term}",
+            "q": f"ribbon_terms:{term}",
             "facet": {
                 "annotations": "unique(id)",
                 "classes": "unique(phenotypic_feature)"
@@ -46,15 +46,19 @@ result = {}
 # http://geneontology.org/docs/ribbon.html
 # https://www.alliancegenome.org/api/gene/*/disease-ribbon-summary?geneID=HGNC:11998
 
-print(response.json()["facets"].items())
 
 for key, value in response.json()["facets"].items():
     if key != 'count':
-        print(key, value)
-        # result[key] = {
-        #     "annotations": value["annotations"],
-        #     "classes": value["classes"]
-        # }
+        if len(value) >1:
+            result[key] = {
+                "annotations": value["annotations"],
+                "classes": value["classes"]
+            }
+        else:
+            result[key] = {
+                "annotations": 0,
+                "classes": 0
+            }
 
 
 
