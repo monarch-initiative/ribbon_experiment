@@ -2,18 +2,21 @@ import requests
 import pandas as pd
 import pprint
 import csv
-from flask import Flask
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-@app.route("/")
+
+@app.route("/ribbon")
 def show_ribbon():
+    gene_id = request.args.get('id')
     df = pd.read_csv('../ribbon.csv')
     # get the ribbon terms
     ribbon_terms = pd.unique(df[["Top level", "Sub level"]].values.ravel()).tolist()
     categories = []
     ribbon_stuff = {}
-
+    if not gene_id:
+        gene_id = 'HGNC:11998'
     # Top level,Top level name,Sub level,Sub level label
     with open('../ribbon.csv') as file:
         reader = csv.reader(file)
@@ -34,7 +37,7 @@ def show_ribbon():
                     category["groups"].append({"id": row[2],
                                             "label": row[3]})
                 else:
-                    category = {"id": row[0].replace(":", "\\:"),
+                    category = {"id": row[0],
                                 "label": row[1],
                                 "description": row[1],
                                 "groups": [row[2]]}
@@ -42,8 +45,6 @@ def show_ribbon():
 
     ribbon_stuff["categories"] = categories
     ribbon_stuff["subjects"] = []
-    pprint.pprint(ribbon_stuff)
-    #value.replace(":", "\\:")
 
     # add escaping
 
@@ -58,50 +59,45 @@ def show_ribbon():
                 "facet": {
                     "annotations": "unique(id)",
                     "classes": "unique(phenotypic_feature)"
+                    # use the "input" of a gene id (just inject into the API result not query solr for it)
                 }
             } for term in escaped_ribbon_terms}
     url = 'http://localhost:8983/solr/phenotype_annotations/query' + '?'
-    print(url)
 
     query = {
         "params": {
             "q": "*:*",
             "rows": "0",
             "wt": "json",
+            "fq": "gene:" + gene_id.replace(":", "\\:")
         },
         "facet": ribbon_term_facet_queries
     }
 
-    print(url)
     response = requests.post(url,
                          headers={"Content-Type": "application/json"},
                          json=query)
 
     result = {}
 
-
-    # TODO: reformat this output to the schema requested by the ribbon.
-    # http://geneontology.org/docs/ribbon.html
-    # https://www.alliancegenome.org/api/gene/*/disease-ribbon-summary?geneID=HGNC:11998
-
-
-    result = {'categories': []}
-
-
     for key, value in response.json()["facets"].items():
         if key != 'count':
             if len(value) > 1:
-                result[key] = {
-                    "annotations": value["annotations"],
-                    "classes": value["classes"]
+                result[key.replace("\\", "")] = {
+                    "ALL": {
+                        "nb_annotations": value["annotations"],
+                        "nb_classes": value["classes"]
+                    }
                 }
             else:
-                result[key] = {
-                    "annotations": 0,
-                    "classes": 0
+                result[key.replace("\\", "")] = {
+                    "ALL": {
+                        "nb_annotations": 0,
+                        "nb_classes": 0
+                    }
                 }
 
-# TODO: connect this to the ribbon frontend -- or have the ribbon frontend call this API
-# TODO: where will this API run
+    subjects = {"id": gene_id, "groups": result}
+    ribbon_stuff['subjects'] = subjects
 
     return ribbon_stuff
