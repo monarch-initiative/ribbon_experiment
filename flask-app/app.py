@@ -2,10 +2,45 @@ import requests
 import pandas as pd
 import pprint
 from collections import defaultdict
+import csv
+
 
 df = pd.read_csv('../ribbon.csv')
 # get the ribbon terms
 ribbon_terms = pd.unique(df[["Top level", "Sub level"]].values.ravel()).tolist()
+categories = []
+ribbon_stuff = {}
+
+# Top level,Top level name,Sub level,Sub level label
+with open('../ribbon.csv') as file:
+    reader = csv.reader(file)
+    current_id = ''
+    for row in reader:
+        if row[0] == 'Top level':
+            continue
+        if current_id == '':
+            current_id = row[0]
+            category = {"id": row[0],
+                        "label": row[1],
+                        "description": row[1],
+                        "groups": [{"id": row[2],
+                                    "label": row[3]}]
+                        }
+        else:
+            if row[0] == current_id:
+                category["groups"].append({"id": row[2],
+                                           "label": row[3]})
+            else:
+                category = {"id": row[0].replace(":", "\\:"),
+                            "label": row[1],
+                            "description": row[1],
+                            "groups": [row[2]]}
+        categories.append(category)
+
+ribbon_stuff["categories"] = categories
+ribbon_stuff["subjects"] = []
+pprint.pprint(ribbon_stuff)
+#value.replace(":", "\\:")
 
 # add escaping
 
@@ -47,9 +82,12 @@ result = {}
 # https://www.alliancegenome.org/api/gene/*/disease-ribbon-summary?geneID=HGNC:11998
 
 
+result = {'categories': []}
+
+
 for key, value in response.json()["facets"].items():
     if key != 'count':
-        if len(value) >1:
+        if len(value) > 1:
             result[key] = {
                 "annotations": value["annotations"],
                 "classes": value["classes"]
@@ -59,10 +97,6 @@ for key, value in response.json()["facets"].items():
                 "annotations": 0,
                 "classes": 0
             }
-
-
-
-
 
 # TODO: connect this to the ribbon frontend -- or have the ribbon frontend call this API
 # TODO: where will this API run
