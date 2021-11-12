@@ -3,9 +3,9 @@ import pandas as pd
 import pprint
 from collections import defaultdict
 
-rt = pd.read_csv('../ribbon.csv')
+df = pd.read_csv('../ribbon.csv')
 # get the ribbon terms
-ribbon_terms = pd.unique(rt[["Top level", "Sub level"]].values.ravel()).tolist()
+ribbon_terms = pd.unique(df[["Top level", "Sub level"]].values.ravel()).tolist()
 
 # add escaping
 

@@ -41,8 +41,10 @@ closure_query = g.query(closure_sparql)
 
 closure = defaultdict(list)
 
+
 def uri_to_term(uri):
-    return uri.replace('http://purl.obolibrary.org/obo/','').replace('_',':')
+    return uri.replace('http://purl.obolibrary.org/obo/', '').replace('_', ':')
+
 
 for res in closure_query:
     closure[uri_to_term(res.child)].append(uri_to_term(res.ribbon_term))
