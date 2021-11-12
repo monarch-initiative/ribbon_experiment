@@ -44,6 +44,8 @@ generate-solr-docs:
 index-solr-docs:
 	./index-solr-docs.sh
 
-.PHONY: run_api
-run_api:
-	python ./app.py
+.PHONY: run-api
+run-api:
+	./run-api.sh
+
+
